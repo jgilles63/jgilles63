@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Boussole 2027</title>
+<style>
+:root{
+  --bg:#f6f4ef; --card:#ffffff; --ink:#1d1f24; --muted:#5f6470; --line:#e2ded4;
+  --accent:#2f4fd8; --accent-ink:#ffffff; --good:#1f8a5b; --bad:#c2410c; --soft:#eef1fd;
+  --bar:#d9dcea;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14161b; --card:#1d2027; --ink:#eceef3; --muted:#a2a7b4; --line:#2e323c;
+    --accent:#7f97ff; --accent-ink:#0d1020; --good:#4cc38a; --bad:#ff8a5c; --soft:#232842; --bar:#353a49;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14161b; --card:#1d2027; --ink:#eceef3; --muted:#a2a7b4; --line:#2e323c;
+  --accent:#7f97ff; --accent-ink:#0d1020; --good:#4cc38a; --bad:#ff8a5c; --soft:#232842; --bar:#353a49;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:760px;margin:0 auto;padding:24px 16px 64px}
+h1{font-size:1.9rem;margin:.2em 0}
+h2{font-size:1.3rem;margin:1.2em 0 .5em}
+p{margin:.5em 0}
+.muted{color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin:16px 0}
+.btn{appearance:none;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:10px 16px;border-radius:10px;font:inherit;cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.spacer{flex:1}
+label.field{display:block;margin:14px 0 6px;font-weight:600}
+select,input[type=text]{width:100%;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer;user-select:none;background:var(--card)}
+.chip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.progress{height:6px;background:var(--bar);border-radius:99px;overflow:hidden}
+.progress>div{height:100%;background:var(--accent);transition:width .25s}
+.theme-tag{display:inline-block;font-size:.8rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--accent)}
+.statement{font-size:1.25rem;font-weight:600;margin:10px 0 18px}
+.answers{display:grid;gap:8px}
+.answers .btn{text-align:left}
+.answers .btn.on{background:var(--soft);border-color:var(--accent);font-weight:600}
+.star{margin-top:14px}
+.hidden{display:none}
+.reveal-name{font-size:2.2rem;font-weight:800;margin:.1em 0}
+.big{font-size:3rem;font-weight:800;color:var(--accent);line-height:1}
+.rank{display:grid;grid-template-columns:1fr;gap:10px}
+.rank-item{display:grid;grid-template-columns:28px 1fr 56px;gap:10px;align-items:center}
+.rank-bar{height:10px;background:var(--bar);border-radius:99px;overflow:hidden;margin-top:4px}
+.rank-bar>div{height:100%;background:var(--accent)}
+.small{font-size:.88rem}
+details{border-top:1px solid var(--line);padding:10px 0}
+details summary{cursor:pointer;font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+td,th{padding:6px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.ok{color:var(--good);font-weight:700}
+.ko{color:var(--bad);font-weight:700}
+svg text{fill:var(--muted);font-size:11px}
+.legend-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:middle}
+textarea{width:100%;min-height:160px;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:13px/1.4 ui-monospace,monospace}
+</style>
+</head>
+<body>
+<main>
+
+<!-- ÉCRAN 0 : ACCUEIL -->
+<section id="s-intro">
+  <p class="theme-tag">Présidentielle 2027</p>
+  <h1>Boussole des programmes</h1>
+  <p>Ce questionnaire compare <strong>tes idées</strong> aux <strong>programmes</strong> des principaux candidats déclarés, pas à leur personnalité. Pendant le questionnaire, aucun nom n'apparaît. Les candidats ne sont révélés qu'à la fin.</p>
+  <div class="card small">
+    <p><strong>Comment ça marche</strong></p>
+    <p>1. Ton profil (qui tu es, où tu vis, ce qui compte pour toi).<br>
+       2. 32 affirmations politiques. Tu dis si tu es d'accord ou non.<br>
+       3. La révélation : quel programme te correspond le plus, avec le détail thème par thème.</p>
+    <p class="muted">Tout reste dans ton navigateur. Rien n'est envoyé nulle part. Les positions des candidats sont une synthèse simplifiée au 9 novembre 2026. Certaines sont annoncées officiellement, d'autres déduites de la ligne de leur parti (c'est indiqué dans le détail des résultats). Ce n'est pas une consigne de vote.</p>
+  </div>
+  <div class="row">
+    <button class="btn primary" id="start">Commencer</button>
+    <button class="btn hidden" id="resume">Reprendre où j'en étais</button>
+  </div>
+</section>
+
+<!-- ÉCRAN 1 : PROFIL -->
+<section id="s-profile" class="hidden">
+  <p class="theme-tag">Étape 1 sur 3 · Ton profil</p>
+  <h1>Qui es-tu ?</h1>
+  <p class="muted">Ces réponses servent à situer ton profil et à pondérer les thèmes qui comptent pour toi. Tout est facultatif sauf les priorités.</p>
+  <div class="card" id="profile-form"></div>
+  <div class="row"><button class="btn" data-go="s-intro">Retour</button><span class="spacer"></span><button class="btn primary" id="to-quiz">Passer aux questions</button></div>
+</section>
+
+<!-- ÉCRAN 2 : QUESTIONS -->
+<section id="s-quiz" class="hidden">
+  <p class="theme-tag">Étape 2 sur 3 · Tes idées</p>
+  <div class="row small muted"><span id="qcount"></span><span class="spacer"></span><span id="qtheme"></span></div>
+  <div class="progress"><div id="qbar" style="width:0"></div></div>
+  <div class="card">
+    <div class="statement" id="qtext"></div>
+    <div class="answers" id="qanswers"></div>
+    <label class="star small"><input type="checkbox" id="qimportant"> Ce sujet est particulièrement important pour moi (il compte double)</label>
+  </div>
+  <div class="row"><button class="btn" id="prev">Précédent</button><span class="spacer"></span><button class="btn primary" id="next" disabled>Suivant</button></div>
+</section>
+
+<!-- ÉCRAN 3 : RÉSULTATS -->
+<section id="s-result" class="hidden">
+  <p class="theme-tag">Étape 3 sur 3 · La révélation</p>
+  <div class="card" id="reveal"></div>
+  <div class="card"><h2>Classement complet</h2><div class="rank" id="ranking"></div></div>
+  <div class="card"><h2>Ta position sur la carte</h2>
+    <p class="small muted">Axe horizontal : économie (à gauche, plus de redistribution et d'intervention publique ; à droite, plus de marché et moins de dépense publique). Axe vertical : société et identité (en haut, plus d'ouverture ; en bas, plus d'autorité et de contrôle de l'immigration).</p>
+    <div id="map"></div></div>
+  <div class="card"><h2>Ton accord thème par thème</h2><div id="themes"></div></div>
+  <div class="card"><h2>Le détail, question par question</h2><div id="details"></div></div>
+  <div class="card"><h2>Ton profil</h2><div id="profile-summary"></div></div>
+  <div class="card"><h2>Garder ou partager ton résultat</h2>
+    <p class="small muted">Copie ce résumé si tu veux en reparler avec Claude ou le garder.</p>
+    <textarea id="summary" readonly></textarea>
+    <div class="row" style="margin-top:10px"><button class="btn" id="copy">Copier le résumé</button><span class="spacer"></span><button class="btn" id="edit">Modifier mes réponses</button><button class="btn" id="reset">Tout recommencer</button></div>
+  </div>
+  <p class="small muted">Candidats non inclus faute de programme suffisamment publié à cette date : Xavier Bertrand, François Ruffin, Delphine Batho, Karim Bouamrane, Anasse Kazib, Selma Labib, Juan Branco et d'autres petites candidatures. La candidature de Marine Le Pen reste suspendue à la décision de la Cour de cassation sur son inéligibilité.</p>
+</section>
+
+</main>
+<script>
+/* ===================== DONNÉES ===================== */
+const CANDS = [
+  {id:"mel", name:"Jean-Luc Mélenchon", party:"La France insoumise", color:"#c0392b"},
+  {id:"glu", name:"Raphaël Glucksmann", party:"Place publique / PS (primaire de la gauche)", color:"#e84393"},
+  {id:"ton", name:"Marine Tondelier", party:"Les Écologistes", color:"#27ae60"},
+  {id:"rou", name:"Fabien Roussel", party:"Parti communiste français", color:"#8e1b1b"},
+  {id:"art", name:"Nathalie Arthaud", party:"Lutte ouvrière", color:"#a40000"},
+  {id:"att", name:"Gabriel Attal", party:"Renaissance", color:"#f1c40f"},
+  {id:"phi", name:"Édouard Philippe", party:"Horizons", color:"#2e86de"},
+  {id:"ret", name:"Bruno Retailleau", party:"Les Républicains", color:"#1e3799"},
+  {id:"lis", name:"David Lisnard", party:"Nouvelle Énergie", color:"#0a8f8f"},
+  {id:"lep", name:"Marine Le Pen", party:"Rassemblement national", color:"#3c2a7a"},
+  {id:"zem", name:"Éric Zemmour", party:"Reconquête", color:"#5d4037"}
+];
+const ORDER = CANDS.map(c=>c.id);
+
+const THEMES = {
+  ret:"Retraites", fis:"Impôts et budget", tra:"Travail et social", imm:"Immigration",
+  sec:"Sécurité et laïcité", eco:"Écologie et énergie", eur:"Europe, défense, international",
+  ins:"Institutions", pub:"Services publics et éducation", soc:"Société"
+};
+
+/* Positions : ordre mel, glu, ton, rou, art, att, phi, ret, lis, lep, zem
+   de -2 (pas du tout d'accord) à +2 (tout à fait d'accord), null = position inconnue.
+   "a" = liste des candidats dont la position a été annoncée (sinon déduite de la ligne du parti).
+   eco / soc : axe de la carte (+1 = « d'accord » tire vers la droite économique / vers l'autorité ; -1 l'inverse). */
+const Q = [
+ {t:"ret", s:"L'âge légal de départ à la retraite devrait être abaissé (62 ans ou moins).",
+  p:[2,1,1,2,2,-1,-2,-2,-2,1,-1], a:"mel glu att phi ret lep", ax:{e:-1}},
+ {t:"ret", s:"Il faut introduire une part de capitalisation (épargne placée) dans le système de retraite.",
+  p:[-2,-1,-1,-2,-2,1,2,1,2,1,1], a:"att phi lis lep zem", ax:{e:1}},
+ {t:"fis", s:"Il faut rétablir un impôt sur la fortune ou taxer fortement les très hauts patrimoines et les gros héritages.",
+  p:[2,2,2,2,2,-2,-1,-1,-2,0,-2], a:"mel glu att", ax:{e:-1}},
+ {t:"fis", s:"Il faut baisser les impôts de production et les charges qui pèsent sur les entreprises.",
+  p:[-2,-1,-1,-2,-2,2,2,2,2,2,2], a:"att phi lis lep ret", ax:{e:1}},
+ {t:"fis", s:"La priorité doit être de réduire le déficit, quitte à baisser fortement la dépense publique.",
+  p:[-2,-1,-1,-2,-2,1,2,2,2,0,1], a:"ret phi att lep lis", ax:{e:1}},
+ {t:"tra", s:"L'État devrait augmenter fortement le SMIC (environ 1 600 € net ou plus).",
+  p:[2,2,1,2,2,-1,-1,-1,-2,-1,-1], a:"mel glu", ax:{e:-1}},
+ {t:"tra", s:"Le RSA et les allocations chômage devraient être davantage conditionnés, avec une durée d'indemnisation plus courte.",
+  p:[-2,-1,-2,-1,-2,2,2,2,2,0,1], a:"att phi", ax:{e:1}},
+ {t:"tra", s:"Il faut assouplir les 35 heures pour permettre de travailler plus.",
+  p:[-2,-1,-2,-1,-2,1,2,2,2,-1,1], a:"phi", ax:{e:1}},
+ {t:"imm", s:"Il faut réduire fortement l'immigration légale (regroupement familial, titres de séjour).",
+  p:[-2,-1,-2,-1,-2,1,2,2,2,2,2], a:"phi att lep zem ret", ax:{s:1}},
+ {t:"imm", s:"Les aides sociales et le logement social devraient être réservés en priorité aux Français.",
+  p:[-2,-2,-2,-2,-2,-2,-1,1,1,2,2], a:"lep", ax:{s:1}},
+ {t:"imm", s:"Il faut supprimer le droit du sol (la nationalité acquise par la naissance en France).",
+  p:[-2,-2,-2,-2,-2,-1,-1,1,1,2,2], a:"lep zem", ax:{s:1}},
+ {t:"imm", s:"Les sans-papiers qui travaillent dans des métiers en tension devraient pouvoir être régularisés.",
+  p:[2,2,2,1,2,0,-1,-2,-2,-2,-2], a:"glu", ax:{s:-1}},
+ {t:"sec", s:"Il faut des peines planchers et beaucoup plus de places de prison.",
+  p:[-2,-1,-2,0,-2,1,1,2,2,2,2], a:"", ax:{s:1}},
+ {t:"sec", s:"Il faut interdire progressivement le port du voile dans l'espace public.",
+  p:[-2,-2,-2,-1,-2,0,-1,1,1,2,2], a:"lep", ax:{s:1}},
+ {t:"eco", s:"Il faut relancer massivement le nucléaire.",
+  p:[-2,0,-2,2,null,2,2,2,2,2,2], a:"lep"},
+ {t:"eco", s:"Il faut continuer à développer fortement l'éolien et le solaire.",
+  p:[2,2,2,0,null,1,1,-1,-1,-2,-2], a:"lep"},
+ {t:"eco", s:"L'urgence climatique justifie des mesures contraignantes, même coûteuses (taxe sur le kérosène, fin des avantages fiscaux aux énergies fossiles…).",
+  p:[2,2,2,-1,0,0,0,-1,-2,-2,-2], a:"glu rou"},
+ {t:"eco", s:"Il faut un grand plan d'investissement public pour la transition écologique, financé par l'État ou l'emprunt.",
+  p:[2,2,2,1,null,0,-1,-2,-2,-1,-2], a:"glu", ax:{e:-1}},
+ {t:"eur", s:"La France doit aller vers plus d'intégration européenne (défense commune, emprunt commun).",
+  p:[-1,2,2,-2,-2,2,1,-1,0,-2,-2], a:"glu", ax:{s:-1}},
+ {t:"eur", s:"La France doit continuer à soutenir militairement l'Ukraine.",
+  p:[-1,2,2,-1,-2,2,2,1,1,-1,-1], a:"glu"},
+ {t:"eur", s:"Il faut augmenter fortement le budget de la défense (3 % du PIB ou plus).",
+  p:[-1,1,-1,-1,-2,2,2,2,1,2,2], a:"phi lep zem"},
+ {t:"eur", s:"La France devrait sortir du commandement intégré de l'OTAN.",
+  p:[2,-2,-1,2,2,-2,-2,-2,-2,2,1], a:"lep"},
+ {t:"eur", s:"Le droit français doit primer sur le droit européen, quitte à sortir de la Convention européenne des droits de l'homme.",
+  p:[-1,-2,-2,-1,-1,-2,-1,1,1,2,2], a:"zem", ax:{s:1}},
+ {t:"ins", s:"Il faut changer de République (6e République) et réduire fortement les pouvoirs du président.",
+  p:[2,1,1,1,0,-1,-1,-1,-1,-1,-1], a:"mel"},
+ {t:"ins", s:"Il faut consulter beaucoup plus souvent les Français par référendum.",
+  p:[2,0,1,1,0,1,1,2,2,2,2], a:"att phi ret lep"},
+ {t:"ins", s:"Il faut introduire la proportionnelle aux élections législatives.",
+  p:[2,2,2,2,1,0,0,-1,0,2,1], a:""},
+ {t:"pub", s:"Il faut recruter massivement dans l'école et l'hôpital publics, même si ça coûte cher.",
+  p:[2,2,2,2,2,0,-1,-2,-2,0,-1], a:"glu ret", ax:{e:-1}},
+ {t:"pub", s:"L'école doit revenir à plus d'autorité : tenue unique, redoublement, sanctions renforcées.",
+  p:[-2,-1,-2,0,-2,2,1,2,2,2,2], a:"att lep", ax:{s:1}},
+ {t:"pub", s:"Des secteurs stratégiques (énergie, autoroutes…) devraient revenir sous contrôle public.",
+  p:[2,1,1,2,2,-1,-1,-1,-2,1,0], a:"", ax:{e:-1}},
+ {t:"pub", s:"Il faut sortir du capitalisme : les grandes entreprises devraient être mises sous le contrôle des travailleurs.",
+  p:[0,-2,-1,1,2,-2,-2,-2,-2,-2,-2], a:"", ax:{e:-1}},
+ {t:"soc", s:"Il faut légaliser l'aide active à mourir (fin de vie).",
+  p:[2,2,2,1,1,1,1,-2,-1,-1,-2], a:"", ax:{s:-1}},
+ {t:"soc", s:"Il faut légaliser le cannabis, avec un encadrement par l'État.",
+  p:[2,1,2,-1,0,-2,-1,-2,-2,-2,-2], a:"", ax:{s:-1}}
+];
+
+const SCALE = [
+  {v:2, l:"Tout à fait d'accord"},
+  {v:1, l:"Plutôt d'accord"},
+  {v:0, l:"Mitigé / neutre"},
+  {v:-1,l:"Plutôt pas d'accord"},
+  {v:-2,l:"Pas du tout d'accord"},
+  {v:null,l:"Je ne sais pas / sans avis (ne compte pas)"}
+];
+
+const PROFILE_FIELDS = [
+  {k:"prenom", l:"Ton prénom (facultatif)", type:"text"},
+  {k:"age", l:"Ta tranche d'âge", opts:["18–24 ans","25–34 ans","35–49 ans","50–64 ans","65 ans et plus"]},
+  {k:"lieu", l:"Où vis-tu ?", opts:["Grande ville / métropole","Ville moyenne","Périurbain (banlieue, couronne)","Petite ville ou village","Outre-mer","À l'étranger"]},
+  {k:"region", l:"Ta région (facultatif)", opts:["Auvergne-Rhône-Alpes","Bourgogne-Franche-Comté","Bretagne","Centre-Val de Loire","Corse","Grand Est","Hauts-de-France","Île-de-France","Normandie","Nouvelle-Aquitaine","Occitanie","Pays de la Loire","Provence-Alpes-Côte d'Azur","Outre-mer","Étranger"]},
+  {k:"statut", l:"Ta situation professionnelle", opts:["Salarié(e) du privé","Fonctionnaire / agent public","Indépendant(e), artisan, commerçant","Chef(fe) d'entreprise","Agriculteur / agricultrice","Étudiant(e)","Demandeur / demandeuse d'emploi","Retraité(e)","Autre"]},
+  {k:"revenu", l:"Revenus mensuels nets du foyer", opts:["Moins de 1 500 €","1 500 – 2 500 €","2 500 – 4 000 €","4 000 – 6 000 €","Plus de 6 000 €","Je préfère ne pas dire"]},
+  {k:"logement", l:"Ton logement", opts:["Propriétaire","Locataire du privé","Locataire HLM / logement social","Hébergé(e) (famille, amis…)","Autre"]},
+  {k:"famille", l:"Ta situation familiale", opts:["Seul(e) sans enfant","En couple sans enfant","En couple avec enfant(s)","Parent solo","Enfants partis du foyer"]},
+  {k:"transport", l:"Ton moyen de transport principal", opts:["Voiture","Transports en commun","Vélo / marche","Deux-roues motorisé","Mixte"]},
+  {k:"echelle", l:"Spontanément, où te situes-tu ?", opts:["Très à gauche","À gauche","Au centre gauche","Au centre","Au centre droit","À droite","Très à droite","Ni gauche ni droite","Je ne sais pas"]}
+];
+
+/* ===================== ÉTAT ===================== */
+let state = {profile:{}, prio:[], ans:{}, imp:{}, i:0};
+const KEY = "boussole2027";
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+function load(){ try{ const s = JSON.parse(localStorage.getItem(KEY)); if(s && s.ans) return s; }catch(e){} return null; }
+
+const $ = id => document.getElementById(id);
+function show(id){ document.querySelectorAll("main>section").forEach(s=>s.classList.toggle("hidden", s.id!==id)); window.scrollTo(0,0); }
+document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>show(b.dataset.go));
+
+/* ===================== PROFIL ===================== */
+function renderProfile(){
+  const f = $("profile-form"); f.innerHTML = "";
+  PROFILE_FIELDS.forEach(fd=>{
+    const lab = document.createElement("label"); lab.className="field"; lab.textContent=fd.l; f.appendChild(lab);
+    let el;
+    if(fd.type==="text"){ el=document.createElement("input"); el.type="text"; el.value=state.profile[fd.k]||""; el.oninput=()=>{state.profile[fd.k]=el.value; save();}; }
+    else{ el=document.createElement("select"); el.innerHTML='<option value="">—</option>'+fd.opts.map(o=>`<option${state.profile[fd.k]===o?" selected":""}>${o}</option>`).join(""); el.onchange=()=>{state.profile[fd.k]=el.value; save();}; }
+    f.appendChild(el);
+  });
+  const lab = document.createElement("label"); lab.className="field"; lab.textContent="Tes 3 thèmes prioritaires (ils compteront double)"; f.appendChild(lab);
+  const chips = document.createElement("div"); chips.className="chips"; f.appendChild(chips);
+  const hint = document.createElement("p"); hint.className="small muted"; f.appendChild(hint);
+  function draw(){
+    chips.innerHTML="";
+    Object.entries(THEMES).forEach(([k,l])=>{
+      const c=document.createElement("span"); c.className="chip"+(state.prio.includes(k)?" on":""); c.textContent=l;
+      c.onclick=()=>{ if(state.prio.includes(k)) state.prio=state.prio.filter(x=>x!==k); else if(state.prio.length<3) state.prio.push(k); save(); draw(); };
+      chips.appendChild(c);
+    });
+    hint.textContent = `${state.prio.length} sur 3 choisis.`;
+    $("to-quiz").disabled = state.prio.length===0;
+  }
+  draw();
+}
+
+/* ===================== QUESTIONS ===================== */
+function renderQ(){
+  const q=Q[state.i];
+  $("qcount").textContent=`Question ${state.i+1} sur ${Q.length}`;
+  $("qtheme").textContent=THEMES[q.t];
+  $("qbar").style.width=((state.i)/Q.length*100)+"%";
+  $("qtext").textContent=q.s;
+  const box=$("qanswers"); box.innerHTML="";
+  SCALE.forEach(o=>{
+    const b=document.createElement("button"); b.className="btn"; b.textContent=o.l;
+    const key=String(o.v);
+    if(state.i in state.ans && String(state.ans[state.i])===key) b.classList.add("on");
+    b.onclick=()=>{ state.ans[state.i]=o.v; save(); renderQ(); setTimeout(()=>{ if(state.i<Q.length-1){state.i++; save(); renderQ();} else finish(); },180); };
+    box.appendChild(b);
+  });
+  $("qimportant").checked=!!state.imp[state.i];
+  $("prev").disabled = state.i===0;
+  $("next").disabled = !(state.i in state.ans);
+  $("next").textContent = state.i===Q.length-1 ? "Voir la révélation" : "Suivant";
+}
+$("qimportant").onchange=e=>{ state.imp[state.i]=e.target.checked; save(); };
+$("prev").onclick=()=>{ if(state.i>0){state.i--; save(); renderQ();} };
+$("next").onclick=()=>{ if(state.i<Q.length-1){state.i++; save(); renderQ();} else finish(); };
+
+/* ===================== CALCUL ===================== */
+function weight(qi){ const q=Q[qi]; return (state.prio.includes(q.t)?2:1)*(state.imp[qi]?2:1); }
+function compute(){
+  const res = CANDS.map((c,ci)=>{
+    let num=0, den=0; const byTheme={};
+    Q.forEach((q,qi)=>{
+      const u=state.ans[qi], p=q.p[ci];
+      if(u===null||u===undefined||p===null) return;
+      const w=weight(qi), sim=1-Math.abs(u-p)/4;
+      num+=w*sim; den+=w;
+      const bt=byTheme[q.t]||(byTheme[q.t]={n:0,d:0}); bt.n+=sim; bt.d+=1;
+    });
+    return {...c, ci, score: den? Math.round(num/den*100):0, byTheme};
+  });
+  return res.sort((a,b)=>b.score-a.score);
+}
+function axes(getPos){
+  let e=0,ne=0,s=0,ns=0;
+  Q.forEach((q,qi)=>{ const v=getPos(qi); if(v===null||v===undefined||!q.ax) return;
+    if(q.ax.e){e+=v*q.ax.e; ne++;} if(q.ax.s){s+=v*q.ax.s; ns++;} });
+  return {x: ne? e/(2*ne):0, y: ns? s/(2*ns):0};
+}
+
+/* ===================== RÉSULTATS ===================== */
+function finish(){
+  const answered = Object.values(state.ans).filter(v=>v!==null).length;
+  if(answered<8){ alert("Réponds au moins à 8 questions avec un avis pour obtenir un résultat significatif."); return; }
+  const r=compute(), top=r[0], second=r[1];
+  const pre = state.profile.prenom ? state.profile.prenom+", le" : "Le";
+  $("reveal").innerHTML = `
+    <p class="muted">${pre} programme qui te correspond le plus est celui de…</p>
+    <p class="reveal-name" style="color:${top.color}">${top.name}</p>
+    <p class="muted">${top.party}</p>
+    <p><span class="big">${top.score}%</span> <span class="muted">de concordance</span></p>
+    <p class="small">Juste derrière : <strong>${second.name}</strong> (${second.score} %). ${top.score-second.score<=3?"L'écart est très faible : ces deux programmes te correspondent presque autant l'un que l'autre.":""}</p>
+    <p class="small muted">Calculé sur ${answered} réponses avec un avis. Tes thèmes prioritaires et les sujets marqués importants comptent double.</p>`;
+  $("ranking").innerHTML = r.map((c,i)=>`
+    <div class="rank-item"><strong>${i+1}</strong>
+      <div><div>${c.name} <span class="muted small">· ${c.party}</span></div><div class="rank-bar"><div style="width:${c.score}%;background:${c.color}"></div></div></div>
+      <strong style="text-align:right">${c.score} %</strong></div>`).join("");
+  drawMap(r);
+  // Thèmes
+  $("themes").innerHTML = `<table><tr><th>Thème</th><th>Programme le plus proche</th><th>Le plus éloigné</th></tr>`+
+    Object.entries(THEMES).map(([k,l])=>{
+      const sc=r.map(c=>({c, v:c.byTheme[k]?c.byTheme[k].n/c.byTheme[k].d:null})).filter(x=>x.v!==null).sort((a,b)=>b.v-a.v);
+      if(!sc.length) return `<tr><td>${l}</td><td colspan="2" class="muted">pas de réponse</td></tr>`;
+      return `<tr><td>${l}${state.prio.includes(k)?" ★":""}</td><td>${sc[0].c.name} <span class="muted">(${Math.round(sc[0].v*100)} %)</span></td><td>${sc[sc.length-1].c.name} <span class="muted">(${Math.round(sc[sc.length-1].v*100)} %)</span></td></tr>`;
+    }).join("")+`</table>`;
+  // Détail
+  const lbl=v=>v===null||v===undefined?"—":({2:"++",1:"+",0:"=","-1":"−","-2":"−−"})[v];
+  $("details").innerHTML = `<p class="small muted">++ tout à fait d'accord · + plutôt d'accord · = neutre · − plutôt pas · −− pas du tout. Les positions marquées d'un astérisque (*) sont <strong>déduites</strong> de la ligne du parti ; les autres ont été <strong>annoncées</strong> par le candidat ou son camp.</p>`+
+    Q.map((q,qi)=>{
+      const u=state.ans[qi];
+      const rows=r.map(c=>{ const p=q.p[c.ci]; const ann=q.a.split(" ").includes(c.id);
+        const cls = (u===null||u===undefined||p===null)?"":(Math.abs(u-p)<=1?"ok":(Math.abs(u-p)>=3?"ko":""));
+        return `<tr><td>${c.name}</td><td class="${cls}">${lbl(p)}${p!==null&&!ann?" *":""}</td></tr>`; }).join("");
+      return `<details><summary>${qi+1}. ${q.s} <span class="muted small">(toi : ${lbl(u)})</span></summary><table>${rows}</table></details>`;
+    }).join("");
+  // Profil
+  const P=state.profile;
+  const items=PROFILE_FIELDS.filter(f=>P[f.k]).map(f=>`<tr><td class="muted">${f.l}</td><td>${P[f.k]}</td></tr>`).join("");
+  $("profile-summary").innerHTML = `<table>${items}<tr><td class="muted">Thèmes prioritaires</td><td>${state.prio.map(k=>THEMES[k]).join(", ")}</td></tr></table>`+
+    insights(P, r);
+  // Résumé texte
+  $("summary").value = buildSummary(r, answered);
+  show("s-result");
+}
+
+function insights(P, r){
+  const notes=[];
+  const top=r[0];
+  if(P.echelle && !/sais pas|Ni gauche/.test(P.echelle)){
+    const left=["mel","glu","ton","rou","art"], right=["ret","lis","lep","zem"];
+    const camp = left.includes(top.id)?"gauche":right.includes(top.id)?"droite":"centre";
+    const self = /gauche/.test(P.echelle)?"gauche":/droite/.test(P.echelle)?"droite":"centre";
+    notes.push(camp===self
+      ? `Tu te situes <strong>${P.echelle.toLowerCase()}</strong>, et ton résultat est cohérent avec ce positionnement.`
+      : `Tu te situes <strong>${P.echelle.toLowerCase()}</strong>, mais le programme le plus proche de tes réponses est plutôt classé au <strong>${camp}</strong>. C'est intéressant à creuser : regarde le détail par thème.`);
+  }
+  if(P.age==="50–64 ans"||P.statut==="Retraité(e)") notes.push("Vu ton âge ou ta situation, le volet <strong>retraites</strong> te concerne directement : les écarts entre programmes y sont très forts (de 60 à 65 ans).");
+  if(P.transport==="Voiture"&&/Petite ville|Périurbain/.test(P.lieu||"")) notes.push("Tu dépends de la voiture hors d'une grande ville : les mesures sur le <strong>prix des carburants</strong> et la fiscalité écologique pèseront concrètement sur ton budget.");
+  if(/Indépendant|Chef/.test(P.statut||"")) notes.push("En tant qu'indépendant ou chef d'entreprise, regarde de près les propositions sur les <strong>impôts de production</strong> et les <strong>charges</strong>.");
+  if(/Locataire/.test(P.logement||"")) notes.push("Comme locataire, les mesures sur le <strong>logement social</strong> et l'encadrement des loyers te concernent (thème encore peu détaillé dans les programmes publiés).");
+  if(/enfant|Parent solo/.test(P.famille||"")) notes.push("Avec des enfants, les propositions sur l'<strong>école</strong> et la <strong>politique familiale</strong> (allocations dès le premier enfant, carte famille monoparentale…) te concernent.");
+  return notes.length? `<h2 style="font-size:1.05rem">Ce que ton profil met en lumière</h2><ul>${notes.map(n=>`<li>${n}</li>`).join("")}</ul>`:"";
+}
+
+function buildSummary(r, answered){
+  const P=state.profile, lines=[];
+  lines.push("BOUSSOLE 2027 — mon résultat");
+  lines.push("Profil : "+PROFILE_FIELDS.filter(f=>P[f.k]&&f.k!=="prenom").map(f=>P[f.k]).join(" · "));
+  lines.push("Priorités : "+state.prio.map(k=>THEMES[k]).join(", "));
+  lines.push(`Réponses avec avis : ${answered}/${Q.length}`);
+  lines.push("");
+  lines.push("Classement :");
+  r.forEach((c,i)=>lines.push(`${i+1}. ${c.name} (${c.party}) — ${c.score} %`));
+  lines.push("");
+  lines.push("Mes réponses :");
+  const txt={2:"tout à fait d'accord",1:"plutôt d'accord",0:"neutre","-1":"plutôt pas d'accord","-2":"pas du tout d'accord"};
+  Q.forEach((q,qi)=>{ const u=state.ans[qi]; lines.push(`- ${q.s} → ${u===null||u===undefined?"sans avis":txt[u]}${state.imp[qi]?" (important)":""}`); });
+  return lines.join("\n");
+}
+
+function drawMap(r){
+  const W=520,H=380,pad=36, sx=x=>pad+(x+1)/2*(W-2*pad), sy=y=>pad+(y+1)/2*(H-2*pad);
+  const me=axes(qi=>state.ans[qi]);
+  let svg=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Carte politique">
+   <rect x="${pad}" y="${pad}" width="${W-2*pad}" height="${H-2*pad}" fill="none" stroke="var(--line)"/>
+   <line x1="${W/2}" y1="${pad}" x2="${W/2}" y2="${H-pad}" stroke="var(--line)"/>
+   <line x1="${pad}" y1="${H/2}" x2="${W-pad}" y2="${H/2}" stroke="var(--line)"/>
+   <text x="${pad}" y="${H/2-6}">Redistribution</text>
+   <text x="${W-pad}" y="${H/2-6}" text-anchor="end">Marché</text>
+   <text x="${W/2+6}" y="${pad+14}">Ouverture</text>
+   <text x="${W/2+6}" y="${H-pad-6}">Autorité</text>`;
+  r.forEach(c=>{ const a=axes(qi=>Q[qi].p[c.ci]);
+    svg+=`<circle cx="${sx(a.x)}" cy="${sy(a.y)}" r="6" fill="${c.color}"><title>${c.name}</title></circle>
+          <text x="${sx(a.x)+8}" y="${sy(a.y)+4}">${c.name.split(" ").slice(-1)[0]}</text>`; });
+  svg+=`<circle cx="${sx(me.x)}" cy="${sy(me.y)}" r="10" fill="none" stroke="var(--ink)" stroke-width="3"/>
+        <text x="${sx(me.x)+13}" y="${sy(me.y)+4}" style="font-weight:700;fill:var(--ink)">Toi</text></svg>`;
+  $("map").innerHTML=svg;
+}
+
+/* ===================== NAVIGATION ===================== */
+$("start").onclick=()=>{ renderProfile(); show("s-profile"); };
+$("to-quiz").onclick=()=>{ renderQ(); show("s-quiz"); };
+$("edit").onclick=()=>{ state.i=0; save(); renderQ(); show("s-quiz"); };
+$("reset").onclick=()=>{ if(confirm("Effacer toutes tes réponses ?")){ state={profile:{},prio:[],ans:{},imp:{},i:0}; save(); show("s-intro"); } };
+$("copy").onclick=()=>{ const t=$("summary"); t.select(); try{ navigator.clipboard.writeText(t.value); }catch(e){ document.execCommand("copy"); } $("copy").textContent="Copié !"; setTimeout(()=>$("copy").textContent="Copier le résumé",1500); };
+
+const saved=load();
+if(saved && Object.keys(saved.ans).length){ state=saved; const b=$("resume"); b.classList.remove("hidden");
+  b.onclick=()=>{ if(Object.keys(state.ans).length===Q.length) finish(); else { renderQ(); show("s-quiz"); } }; }
+</script>
+</body>
+</html>
